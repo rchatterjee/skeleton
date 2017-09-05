@@ -3,6 +3,7 @@ package controllers;
 import api.ReceiptResponse;
 import dao.TagDao;
 import generated.tables.records.ReceiptsRecord;
+import generated.tables.records.TagsRecord;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;

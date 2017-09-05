@@ -28,7 +28,6 @@ public class TagDao {
                 .where(TAGS.TAG.eq(tag)))).fetch();
     }
 
-
     public void insert_or_delete(String tag, int receipt_id) {
         if (dsl.fetchOne("select * from receipts where id=" + receipt_id) != null) {
             if(dsl.fetchOne("select 1 from tags where tag='" + tag + "' and receipt_id="+receipt_id) != null) {
