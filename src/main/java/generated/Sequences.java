@@ -24,7 +24,7 @@ import org.jooq.impl.SequenceImpl;
 public class Sequences {
 
 	/**
-	 * The sequence <code>public.system_sequence_bc40e215_b807_4dcf_990b_df6d5ce0dad1</code>
+	 * The sequence <code>public.system_sequence_f79cd42a_4643_43ce_a2b6_7d08ec55b084</code>
 	 */
-	public static final Sequence<Long> SYSTEM_SEQUENCE_BC40E215_B807_4DCF_990B_DF6D5CE0DAD1 = new SequenceImpl<Long>("system_sequence_bc40e215_b807_4dcf_990b_df6d5ce0dad1", Public.PUBLIC, org.jooq.impl.SQLDataType.BIGINT);
+	public static final Sequence<Long> SYSTEM_SEQUENCE_F79CD42A_4643_43CE_A2B6_7D08EC55B084 = new SequenceImpl<Long>("system_sequence_f79cd42a_4643_43ce_a2b6_7d08ec55b084", Public.PUBLIC, org.jooq.impl.SQLDataType.BIGINT);
 }
