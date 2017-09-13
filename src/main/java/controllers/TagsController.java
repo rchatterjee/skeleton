@@ -1,12 +1,8 @@
 package controllers;
 
-import api.CreateReceiptRequest;
-import api.CreateTagRequest;
 import api.ReceiptResponse;
-import dao.ReceiptDao;
 import dao.TagDao;
 import generated.tables.records.ReceiptsRecord;
-import generated.tables.records.TagsRecord;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -28,7 +24,7 @@ public class TagsController {
 
     @PUT
     public void addTag(@PathParam("tag") String tag, int receipt_id) {
-        tags.insert(tag, receipt_id);
+        tags.insert_or_delete(tag, receipt_id);
     }
 
     @GET

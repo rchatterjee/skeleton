@@ -5,6 +5,7 @@ import generated.tables.records.ReceiptsRecord;
 
 import java.math.BigDecimal;
 import java.sql.Time;
+import java.util.List;
 
 /**
  * This is an API Object.  Its purpose is to model the JSON API that we expose.

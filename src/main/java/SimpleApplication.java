@@ -38,12 +38,14 @@ public class SimpleApplication extends Application<Configuration> {
         ReceiptDao receiptDao = new ReceiptDao(jooqConfig);
         TagDao tagDao = new TagDao(jooqConfig);
 
+
         // Register all Controllers below.  Don't forget
         // you need class and method @Path annotations!
+        env.jersey().register(new CORSFilter());
         env.jersey().register(new StaticHtmlController());
-        env.jersey().register(new ReceiptController(receiptDao));
-        env.jersey().register(new ReceiptImageController());
+        env.jersey().register(new ReceiptController(receiptDao, tagDao));
         env.jersey().register(new TagsController(tagDao));
         env.jersey().register(new NetidController());
+
     }
 }

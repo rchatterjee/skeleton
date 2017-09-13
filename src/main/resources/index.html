@@ -2,20 +2,42 @@
 <html>
 
 <head>
-    <link rel="stylesheet" href="style.css" />
     <script data-require="jquery@*" data-semver="3.1.1" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <style>
         #container {border: 1px solid brown;}
+
+        #entry-modal {
+            display: none;
+            clear: both;
+            margin: 0 0 20px 0;
+            background-color: #55A;
+            height: 150px;
+        }
+
+        #entry-modal INPUT {
+            HEIGHT: 20px;
+            WIDTH: 80%;
+        }
+
+        #entry-modal:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
         H1 {float: left;}
 
         .button{
+            margin-left: 10px;
             background-color:#55A;
             border: 1px solid #229;
-            width: 100px;
+            min-width: 100px;
             float: right;
             font-size: 2em;
             color: white;
             text-align: center;
+
+            cursor: pointer;
         }
 
         #receiptList {
@@ -28,29 +50,151 @@
             margin-bottom: 5px;
         }
 
+        .receipt > SPAN {  display: inline-block; padding-right: 30px;}
+
+
+        .tagPill {
+            min-width: 30px;
+            border-radius: 15px;
+            background: #c88;
+            display: inline-block;
+            padding: 2px 5px 2px 5px;
+            margin: 0 2px 0 2px;
+            cursor: pointer;
+            text-align: center;
+        }
+
     </style>
     <script>
-        // This is the idiomatic way to ensure that JQuery does not
-        // execute until the page has loaded
-        $(function(){
-            const api = ""; // <- do not need a root api URL if this page is served directly by the API
+     // This is the idiomatic way to ensure that JQuery does not
+     // execute until the page has loaded
+     // Add Tag
+     const API = "http://localhost:8080";
+     function _add_tag_(receipt_id, tag, oncompletefunc) {
+         $.ajax({
+             type: 'PUT',
+             url: API + "/tags/" + tag,
+             contentType: 'application/json', // This is the money shot
+             data: JSON.stringify(receipt_id),
+             complete: oncompletefunc
+         });
+     }
 
-            $.getJSON(api+"/receipts", function(receipts){
-                for(var i=0; i < receipts.length; i++) {
-                    var receipt = receipts[i];
-                    $(`<div class="receipt">${receipt.merchantName}<div><span class="receiptTag">t1</span></div></div>`)
-                        .appendTo($("#receiptList"));
-                }
+     function add_tag_toggle(e) {
+         id = e.id;
+         orig_elem = '<div class="tagPill add-tag" onclick="add_tag_toggle(this)" ';
+         orig_elem += 'id="'+id+'">Add Tag</div>';
 
-            })
-        })
+         e = 'div#' + id + '.add-tag'
+         // console.log('<input id="'+ $(e).attr('id')+'" name="tag" type="text"/>');
+         $(e).replaceWith('<input id="t'+ id +'" class="tag_input" type="text"/>');
+
+         
+         $('input#t'+id+'.tag_input').keypress(function(ek) {
+             if (ek.which == 13) {
+                 console.dir(ek);
+                 elem = 'input#t'+id+'.tag_input';
+                 tag = $(elem).val();
+                 receipt_id = id;
+                 _add_tag_(receipt_id, tag, function() {
+                     $(elem).replaceWith(orig_elem);
+                     get_tags(receipt_id);
+                 });
+                 console.log({'receipt_id': receipt_id, tag: tag});
+                 return false;
+             }
+             else if (ek.which == 27) {
+                 $(ek).replaceWith(orig_elem);
+                 return false;
+             }
+         });
+     }
+
+     function get_tags(receipt_id) {
+         $.getJSON(API + "/receipts/" + receipt_id + "/tags", function(tags) {
+             e = ''
+             for(i=0; i < tags.length; i++) {
+                 e += '<div class="tagPill">';
+                 e += '<span class="tagValue" onclick="del_tag(\''+tags[i]+'\', '+receipt_id+')">' + tags[i] + '</span></div>';
+             }
+             e += '<div class="tagPill add-tag" onclick="add_tag_toggle(this)" ';
+             e += 'id="'+receipt_id+'">Add Tag</div>';
+             sel = '#receipt_'+receipt_id+' > .tags';
+             $(sel).html("");
+             $(e).appendTo($(sel));
+         });
+     }
+     
+     function del_tag(tag, receipt_id) {
+         console.log("Putting  " + tag + "----" + receipt_id);
+         _add_tag_(receipt_id, tag, function() {
+             get_tags(receipt_id);
+         });
+     }
+
+     $(function(){
+         $.getJSON(API+"/receipts", function(receipts){
+             for(var i=0; i < receipts.length; i++) {
+                 var receipt = receipts[i];
+                 e = '<div class="receipt" id="receipt_' + receipt.id + '">'
+                 e += '<span class="merchant">'+receipt.merchantName+'</span>'
+                 e += '<span class="amount">'+receipt.value+'</span>'
+                 e += '<div class="tags"></div>'
+                 e += '</div>';
+                 $(e).appendTo($("#receiptList"));
+             }
+
+             $('.receipt').each(function(i, e) {
+                 get_tags(e.id.split('_')[1]);
+             });
+         });
+         
+         function toggleEntryModal() {
+             $('#entry-modal').toggle();
+         }
+         
+         $('#add-receipt, #cancel-receipt').on('click', function() {
+             toggleEntryModal()
+         });
+
+         function save_receipt() {
+             $.ajax({
+                 type: 'POST',
+                 url: API+"/receipts",
+                 contentType: 'application/json', // This is the money shot
+                 data: JSON.stringify({merchant: $('#merchant').val(), 
+                                       amount: $('#amount').val()}),
+                 success: function() {
+                     $('#entry-modal input').val('')
+                 },
+                 complete: toggleEntryModal,
+             });
+         }
+         $('#save-receipt').on('click', save_receipt);
+         $('#save-receipt.input').keypress(function (e) {
+             if (e.which == 13) {
+                 save_receipt()
+                 return false;    //<---- Add this line
+             } else if (e.which == 27) {
+                 toggleEntryModal();
+                 return false;
+             }
+         });
+     });
     </script>
 </head>
 
 <body>
 <DIV id="container">
     <h1>My receipts</h1>
-    <div class="button">+</div>
+    <div class="button" id="add-receipt">+</div>
+    <div id="entry-modal">
+        <INPUT id="merchant"> <br>
+        <INPUT id="amount">
+        <hr>
+        <span class="button" style ="float: right;" id="save-receipt">SAVE</span> &nbsp;
+        <span class="button" style="float: right;" id="cancel-receipt">CANCEL</span>
+    </div>
     <div id="receiptList">
     </div>
 </DIV>

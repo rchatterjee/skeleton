@@ -22,25 +22,28 @@ public class TagDao {
         this.dsl = DSL.using(jooqConfig);
     }
 
-    public void insert(String tag, int receipt_id) {
-        dsl
-                .insertInto(TAGS, TAGS.TAG, TAGS.RECEIPT_ID)
-                .values(tag, receipt_id).returning().fetchOne();
-        // checkState(tagsRecord != null, "Insert failed");
-    }
-
     public List<ReceiptsRecord> getAllReceipts(String tag) {
         return dsl.selectFrom(RECEIPTS).where(RECEIPTS.ID.in(dsl.select(TAGS.RECEIPT_ID)
                 .from(TAGS.innerJoin(RECEIPTS).on(TAGS.RECEIPT_ID.eq(RECEIPTS.ID)))
                 .where(TAGS.TAG.eq(tag)))).fetch();
     }
 
-    public void delete(String tag, int receipt_id) {
+
+    public void insert_or_delete(String tag, int receipt_id) {
         if (dsl.fetchOne("select * from receipts where id=" + receipt_id) != null) {
-            if(dsl.selectFrom(TAGS).where(TAGS.TAG.eq(tag).and(TAGS.RECEIPT_ID.eq(receipt_id))) != null)
-                dsl.deleteFrom(TAGS).where(TAGS.TAG.eq(tag).and(TAGS.RECEIPT_ID.eq(receipt_id)));
-            else
-                insert(tag, receipt_id);
+            if(dsl.fetchOne("select 1 from tags where tag='" + tag + "' and receipt_id="+receipt_id) != null) {
+                System.out.println(">>>>> Deleting tag!! " + tag);
+                dsl.deleteFrom(TAGS).where(TAGS.TAG.eq(tag).and(TAGS.RECEIPT_ID.eq(receipt_id))).execute();
+            }
+            else {
+                System.out.println(">>>>> Inserting tag!! " + tag);
+                dsl.insertInto(TAGS, TAGS.TAG, TAGS.RECEIPT_ID)
+                        .values(tag, receipt_id).returning().execute();
+            }
         }
+    }
+
+    public List<String> getTags(int receipt_id) {
+        return dsl.selectFrom(TAGS).where(TAGS.RECEIPT_ID.eq(receipt_id)).fetch(TAGS.TAG);
     }
 }
