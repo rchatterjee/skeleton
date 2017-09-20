@@ -40,6 +40,7 @@ public class TagDao {
                         .values(tag, receipt_id).returning().execute();
             }
         }
+
     }
 
     public List<String> getTags(int receipt_id) {
